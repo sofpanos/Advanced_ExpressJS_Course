@@ -1,4 +1,5 @@
 const express = require("express");
+const helmet = require('helmet');
 const path = require("path");
 const createError = require("http-errors");
 const bodyParser = require("body-parser");
@@ -6,15 +7,20 @@ const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const MongoStore = require("connect-mongo")(session);
 const mongoose = require("mongoose");
+const compression = require('compression');
 const routes = require("./routes");
-const auth = require('./lib/auth');
+const auth = require("./lib/auth");
 const SpeakerService = require("./services/SpeakerService");
 const FeedbackService = require("./services/FeedbackService");
+const AvatarService = require("./services/AvatarService");
 
 module.exports = config => {
   const app = express();
+  app.use(helmet());
+  app.use(compression());
   const speakers = new SpeakerService(config.data.speakers);
   const feedback = new FeedbackService(config.data.feedback);
+  const avatars = new AvatarService(config.data.avatars);
 
   app.set("view engine", "pug");
   app.set("views", path.join(__dirname, "./views"));
@@ -27,12 +33,14 @@ module.exports = config => {
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(cookieParser());
 
-  app.use(session({
+  app.use(
+    session({
       secret: "very secret 12345",
       resave: true,
       saveUninitialized: false,
       store: new MongoStore({ mongooseConnection: mongoose.connection })
-  }));
+    })
+  );
 
   app.use(auth.initialize);
   app.use(auth.session);
@@ -48,7 +56,7 @@ module.exports = config => {
     }
   });
 
-  app.use("/", routes({ speakers, feedback }));
+  app.use("/", routes({ speakers, feedback, avatars }));
 
   // catch 404 and forward to error handler
   app.use((req, res, next) => {

@@ -29,6 +29,9 @@ const UserSchema = mongoose.Schema(
       trim: true,
       index: { unique: true },
       minlength: 8
+    },
+    avatar: {
+      type: String,
     }
   },
   { timestamps: true }
