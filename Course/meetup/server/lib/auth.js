@@ -4,7 +4,7 @@ const UserModel = require("../models/UserModel");
 passport.use(
   new LocalStrategy({ usernameField: "email" }, async (username, password, done) => {
     try {
-      const user = await (await UserModel.findOne({ email: username })).exec();
+      const user = await UserModel.findOne({ email: username }).exec();
       if (!user) {
         return done(null, false, { message: "Invalid username or password" });
       }
